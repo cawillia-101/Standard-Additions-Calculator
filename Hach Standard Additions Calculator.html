@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hach Standard Additions Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F2F5F6; --panel:#FFFFFF; --ink:#10303A; --muted:#5A7480; --line:#D3DEE2;
+  --accent:#0B7A8A; --accent-ink:#FFFFFF; --soft:#E7F1F3; --err:#C23B3B;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0E1E24; --panel:#14272F; --ink:#E4EEF1; --muted:#8FA9B3; --line:#27414B;
+    --accent:#4FC3D2; --accent-ink:#06222A; --soft:#193139; --err:#F08080;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0E1E24; --panel:#14272F; --ink:#E4EEF1; --muted:#8FA9B3; --line:#27414B;
+  --accent:#4FC3D2; --accent-ink:#06222A; --soft:#193139; --err:#F08080;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.5; font-variant-numeric: tabular-nums;
+}
+.wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 48px; }
+h1 { font-size: 26px; line-height: 1.2; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.01em; }
+.lede { margin: 0 0 22px; color: var(--muted); max-width: 62ch; }
+.layout { display: grid; grid-template-columns: 340px 1fr; gap: 18px; align-items: start; }
+@media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.panel h2 { font-size: 16px; margin: 0 0 12px; font-weight: 650; }
+.field { display: block; margin-bottom: 12px; }
+.field span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 3px; }
+input[type=number] {
+  width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px;
+}
+input:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn {
+  appearance: none; font: inherit; font-weight: 600; cursor: pointer; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 8px 14px; margin-right: 6px;
+}
+.results { display: grid; gap: 14px; }
+.big { background: var(--accent); color: var(--accent-ink); border-radius: 10px; padding: 18px 20px; }
+.big .k { font-size: 14px; opacity: .88; }
+.big .v { font-size: 36px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.big .s { font-size: 14px; opacity: .92; margin-top: 2px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; }
+.card .k { font-size: 13px; color: var(--muted); }
+.card .v { font-size: 26px; font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
+.steps { font-size: 14px; color: var(--muted); }
+.steps code { display: block; color: var(--ink); background: var(--soft); padding: 8px 10px; border-radius: 6px; margin: 6px 0; font-size: 13.5px; overflow-x: auto; }
+.msg { border-left: 3px solid var(--err); padding: 8px 12px; background: var(--soft); border-radius: 0 6px 6px 0; font-size: 14px; }
+.badge { display: inline-block; margin-top: 10px; padding: 4px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #FFFFFF; }
+.badge.pass { background: #1E7B3A; }
+.badge.fail { background: #B3261E; }
+.note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Hach Standard Additions Calculator</h1>
+  <p class="lede">Enter your sample, spike, and measured values to get the theoretical concentration and percent recovery.</p>
+
+  <div class="layout">
+    <div class="panel">
+      <h2>Inputs</h2>
+      <label class="field"><span>Sample concentration, Cu (mg/L)</span><input type="number" id="cu" step="any" inputmode="decimal" min="0"></label>
+      <label class="field"><span>Starting sample volume, Vu (mL)</span><input type="number" id="vu" step="any" inputmode="decimal" min="0"></label>
+      <label class="field"><span>Spike concentration, Cs (mg/L)</span><input type="number" id="cs" step="any" inputmode="decimal" min="0"></label>
+      <label class="field"><span>Spike volume, Vs (mL)</span><input type="number" id="vs" step="any" inputmode="decimal" min="0"></label>
+      <label class="field"><span>Actual (measured) concentration, Ca (mg/L)</span><input type="number" id="ca" step="any" inputmode="decimal" min="0"></label>
+      <button class="btn" id="example" type="button">Load example</button>
+      <button class="btn" id="clear" type="button">Clear</button>
+    </div>
+
+    <div class="results" id="out" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var ids = ["cu", "vu", "cs", "vs", "ca"];
+  function $(id) { return document.getElementById(id); }
+  function val(id) { var s = $(id).value; if (s === "") return NaN; var v = parseFloat(s); return isFinite(v) ? v : NaN; }
+  function fmt(x, d) {
+    if (!isFinite(x)) return "—";
+    d = d || 4;
+    if (x === 0) return "0";
+    var a = Math.abs(x);
+    if (a < 1e-3 || a >= 1e7) return x.toExponential(d - 1);
+    return String(Number(x.toPrecision(d)));
+  }
+
+  function calc() {
+    var out = $("out");
+    var v = {}, missing = [];
+    ids.forEach(function (id) { v[id] = val(id); if (isNaN(v[id])) missing.push(id); });
+    var needCt = ["cu", "vu", "cs", "vs"].filter(function (id) { return isNaN(v[id]); });
+
+    if (needCt.length) {
+      out.innerHTML = '<div class="card"><div class="k">Theoretical concentration, Ct</div><div class="v">—</div><p class="note">Fill in Cu, Vu, Cs and Vs to calculate Ct.</p></div>';
+      return;
+    }
+    if (ids.some(function (id) { return v[id] < 0; })) {
+      out.innerHTML = '<div class="msg">Values cannot be negative.</div>';
+      return;
+    }
+    var total = v.vu + v.vs;
+    if (total <= 0) {
+      out.innerHTML = '<div class="msg">Vu + Vs must be greater than zero.</div>';
+      return;
+    }
+    var massU = v.cu * v.vu, massS = v.cs * v.vs;
+    var ct = (massU + massS) / total;
+
+    var h = "";
+    if (isNaN(v.ca)) {
+      h += '<div class="big"><div class="k">Theoretical concentration, Ct</div><div class="v">' + fmt(ct) + ' mg/L</div><div class="s">Enter the actual concentration, Ca, to get percent recovery.</div></div>';
+    } else if (ct === 0) {
+      h += '<div class="card"><div class="k">Theoretical concentration, Ct</div><div class="v">0 mg/L</div></div>';
+      h += '<div class="msg">Percent recovery cannot be calculated because Ct is zero.</div>';
+    } else {
+      var rec = v.ca / ct * 100;
+      var pass = rec >= 85 && rec <= 115;
+      h += '<div class="big"><div class="k">Percent recovery</div><div class="v">' + fmt(rec, 4) + '%</div><div class="s">Ct = ' + fmt(ct) + ' mg/L &nbsp;|&nbsp; Ca = ' + fmt(v.ca) + ' mg/L</div>' +
+        '<span class="badge ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '✓ Pass' : '✗ Fail') + ' (acceptance range 85–115%)</span></div>';
+      h += '<div class="card"><div class="k">Theoretical concentration, Ct</div><div class="v">' + fmt(ct) + ' mg/L</div></div>';
+    }
+    h += '<div class="card steps"><strong style="color:var(--ink)">Working</strong>' +
+      '<code>Ct = (Cu × Vu + Cs × Vs) / (Vu + Vs)</code>' +
+      '<code>Ct = (' + fmt(v.cu) + ' × ' + fmt(v.vu) + ' + ' + fmt(v.cs) + ' × ' + fmt(v.vs) + ') / (' + fmt(v.vu) + ' + ' + fmt(v.vs) + ')</code>' +
+      '<code>Ct = (' + fmt(massU) + ' + ' + fmt(massS) + ') / ' + fmt(total) + ' = ' + fmt(ct) + ' mg/L</code>' +
+      (isNaN(v.ca) || ct === 0 ? '' : '<code>% Recovery = Ca / Ct × 100 = ' + fmt(v.ca) + ' / ' + fmt(ct) + ' × 100 = ' + fmt(v.ca / ct * 100, 4) + '%</code>') +
+      '</div>';
+    out.innerHTML = h;
+  }
+
+  ids.forEach(function (id) { $(id).addEventListener("input", calc); });
+  $("example").addEventListener("click", function () {
+    var ex = { cu: 2.5, vu: 50, cs: 100, vs: 1, ca: 4.35 };
+    ids.forEach(function (id) { $(id).value = ex[id]; });
+    calc();
+  });
+  $("clear").addEventListener("click", function () {
+    ids.forEach(function (id) { $(id).value = ""; });
+    calc();
+  });
+  calc();
+})();
+</script>
+</body>
+</html>
